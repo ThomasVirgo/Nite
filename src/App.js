@@ -5,15 +5,21 @@ import { Login, SignUp, PrivateRoute, Dashboard } from './pages'
 function App() {
   return (
     <div>
-      <h1>Nite</h1>
+      <h1 className="text-3xl font-bold">Nite</h1>
       <Router>
         <AuthProvider>
           <Routes>
+
+            {/* PUBLIC ROUTES */}
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/login" element={<Login />} />
+
+            {/* PRIVATE ROUTES */}
             <Route element={<PrivateRoute />}>
               <Route exact path="/" element={<Dashboard />}></Route>
             </Route>
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/login" element={<Login />} />
+
+
           </Routes>
         </AuthProvider>
       </Router>
