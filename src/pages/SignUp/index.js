@@ -1,26 +1,28 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { useAuth } from '../../contexts/auth'
 
 function SignUp() {
-    const emailRef = useRef()
-    const passwordRef = useRef()
-
     const [error, setError] = useState(null)
-
     const { signUp } = useAuth()
+    const [input, setInput] = useState({
+        "email": "",
+        "password": ""
+    })
 
     async function handleSubmit(e) {
         e.preventDefault()
-
-        const email = emailRef.current.value
-        const password = passwordRef.current.value
-
-        const { error } = await signUp({ email, password })
-
+        const { error } = await signUp({ "email": input.email, "password": input.password })
         if (error) return setError(error)
+    }
 
+    function handleChange(e) {
+        let newInput = {
+            ...input,
+            [e.target.name]: e.target.value
+        }
+        setInput(newInput)
     }
 
     return (
@@ -28,11 +30,18 @@ function SignUp() {
             <form onSubmit={handleSubmit}>
                 <div>{error && JSON.stringify(error)}</div>
 
-                <label htmlFor="input-email">Email</label>
-                <input id="input-email" type="email" ref={emailRef} />
-
-                <label htmlFor="input-password">Password</label>
-                <input id="input-password" type="password" ref={passwordRef} />
+                <div className="form-control w-full max-w-xs">
+                    <label className="label">
+                        <span className="label-text">Email</span>
+                    </label>
+                    <input type="email" placeholder="email..." className="input input-bordered w-full max-w-xs" name="email" onChange={handleChange} value={input.email} />
+                </div>
+                <div className="form-control w-full max-w-xs">
+                    <label className="label">
+                        <span className="label-text">Password</span>
+                    </label>
+                    <input type="password" placeholder="password..." className="input input-bordered w-full max-w-xs" name="password" onChange={handleChange} value={input.password} />
+                </div>
 
                 <br />
 
