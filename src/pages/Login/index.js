@@ -30,7 +30,7 @@ const Login = () => {
     }
 
     return (
-        <>
+        <div className="grid h-screen place-items-center">
             <form onSubmit={handleSubmit} className="card w-96 bg-base-100 mx-1">
                 <div>{error && JSON.stringify(error)}</div>
 
@@ -54,7 +54,7 @@ const Login = () => {
             <p>
                 Don't have an account? <Link to="/signup">Sign Up</Link>
             </p>
-        </>
+        </div>
     )
 }
 

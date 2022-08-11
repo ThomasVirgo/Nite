@@ -1,4 +1,8 @@
+import { useAuth } from '../../contexts/auth'
+
 const Nav = () => {
+    const { signOut } = useAuth()
+
     return (
         <div className="navbar bg-base-100">
             <div className="navbar-start">
@@ -10,6 +14,7 @@ const Nav = () => {
                         <li><button>Home</button></li>
                         <li><button>Portfolio</button></li>
                         <li><button>About</button></li>
+                        <li><button onClick={signOut}>Logout</button></li>
                     </ul>
                 </div>
             </div>
