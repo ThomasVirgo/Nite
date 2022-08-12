@@ -12,8 +12,9 @@ const Nav = () => {
                     </label>
                     <ul tabindex="0" className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
                         <li><button>Home</button></li>
-                        <li><button>Portfolio</button></li>
-                        <li><button>About</button></li>
+                        <li><button>Account</button></li>
+                        <li><button>Friends</button></li>
+                        <li><button>Nites</button></li>
                         <li><button onClick={signOut}>Logout</button></li>
                     </ul>
                 </div>
