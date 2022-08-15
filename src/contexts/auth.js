@@ -33,6 +33,7 @@ function AuthProvider({ children }) {
         signUp: (credentials, data) => supabase.auth.signUp(credentials, data),
         signIn: (data) => supabase.auth.signIn(data),
         signOut: () => supabase.auth.signOut(),
+        updateUserInfo: (data) => supabase.auth.update(data),
         user,
     }
 
