@@ -5,6 +5,7 @@ import { Nav } from "../../components";
 
 const Account = () => {
     const [profileData, setProfileData] = useState({})
+    const [selectedImage, setSelectedImage] = useState(null);
     const baseInput = {
         "first_name": "",
         "last_name": "",
@@ -101,6 +102,25 @@ const Account = () => {
             </div>
 
             <hr className="mt-4"></hr>
+            <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:tracking-tight sm:truncate ml-4 mt-6">Upload Profile Picture</h2>
+            <div className="ml-3">
+                {selectedImage && (
+                    <div >
+                        <img alt="not fount" width={"250px"} src={URL.createObjectURL(selectedImage)} />
+                    </div>
+                )}
+                <br />
+                <input
+                    type="file"
+                    name="profile-picture"
+                    onChange={(event) => {
+                        console.log(event.target.files[0]);
+                        setSelectedImage(event.target.files[0]);
+                        event.target.value = null;
+                    }}
+                />
+            </div>
+            <hr className="mt-4"></hr>
 
             <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:tracking-tight sm:truncate ml-4 mt-6">Change Password</h2>
 
@@ -119,6 +139,7 @@ const Account = () => {
             </div>
             <button onClick={updatePassword} className="btn ml-3 mt-4">Submit</button>
             <hr className="mt-4"></hr>
+
         </>
     )
 }
