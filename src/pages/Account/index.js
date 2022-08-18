@@ -116,7 +116,6 @@ const Account = () => {
                     onChange={(event) => {
                         console.log(event.target.files[0]);
                         setSelectedImage(event.target.files[0]);
-                        event.target.value = null;
                     }}
                 />
             </div>
