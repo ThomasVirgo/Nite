@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/api"
 import { useAuth } from "../../contexts/auth";
-import { Nav, Loading } from "../../components";
+import { Nav, Loading, PopUpMessage } from "../../components";
 import Compressor from "compressorjs";
 
 const Account = () => {
     const [profileData, setProfileData] = useState({})
     const [selectedImage, setSelectedImage] = useState(null);
     const [uploadingImage, setUploadingImage] = useState(false)
+    const [showPopup, setShowPopup] = useState(false)
     const baseInput = {
         "first_name": "",
         "last_name": "",
@@ -93,6 +94,7 @@ const Account = () => {
                 }
             })
             setUploadingImage(false)
+            setShowPopup(true)
             console.log("successfully uploaded image");
         } catch (error) {
             console.log(error);
@@ -170,7 +172,7 @@ const Account = () => {
             </div>
             <button onClick={updatePassword} className="btn ml-3 mt-4">Submit</button>
             <hr className="mt-4"></hr>
-
+            {showPopup && <PopUpMessage message={"Successfully uploaded profile picture"} setter={setShowPopup} messageType="success" />}
         </>
     )
 }
