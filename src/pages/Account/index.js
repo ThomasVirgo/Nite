@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/api"
 import { useAuth } from "../../contexts/auth";
-import { Nav } from "../../components";
+import { Nav, Loading } from "../../components";
+import Compressor from "compressorjs";
 
 const Account = () => {
     const [profileData, setProfileData] = useState({})
     const [selectedImage, setSelectedImage] = useState(null);
+    const [uploadingImage, setUploadingImage] = useState(false)
     const baseInput = {
         "first_name": "",
         "last_name": "",
@@ -71,6 +73,34 @@ const Account = () => {
         setPasswords(newPasswordInput)
     }
 
+    function uploadPhoto() {
+        let typeMap = {
+            "image/jpeg": ".jpg",
+            "image/png": ".png"
+        }
+        setUploadingImage(true)
+        try {
+            let extension = typeMap[selectedImage.type]
+            new Compressor(selectedImage, {
+                quality: 0.8,
+                success: async (compressedImage) => {
+                    const { data, error } = await supabase.storage
+                        .from('profilepictures')
+                        .upload(`${user.id}${extension}`, compressedImage, {
+                            cacheControl: '3600',
+                            upsert: false,
+                        })
+                }
+            })
+            setUploadingImage(false)
+            console.log("successfully uploaded image");
+        } catch (error) {
+            console.log(error);
+            setUploadingImage(false)
+            return // tell user must be of type jpg or png
+        }
+    }
+
     return (
         <>
             <Nav />
@@ -114,11 +144,13 @@ const Account = () => {
                     type="file"
                     name="profile-picture"
                     onChange={(event) => {
-                        console.log(event.target.files[0]);
                         setSelectedImage(event.target.files[0]);
                     }}
                 />
             </div>
+            <button onClick={uploadPhoto} className="btn btn-primary ml-3 mt-4">Upload</button>
+            {uploadingImage && <><span>uploading image, please wait...</span><Loading /></>}
+
             <hr className="mt-4"></hr>
 
             <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:tracking-tight sm:truncate ml-4 mt-6">Change Password</h2>
