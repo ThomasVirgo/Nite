@@ -8,7 +8,8 @@ const Account = () => {
     const [profileData, setProfileData] = useState({})
     const [selectedImage, setSelectedImage] = useState(null);
     const [uploadingImage, setUploadingImage] = useState(false)
-    const [showPopup, setShowPopup] = useState(false)
+    const [message, setMessage] = useState("")
+    const [messageType, setMessageType] = useState("success")
     const baseInput = {
         "first_name": "",
         "last_name": "",
@@ -29,6 +30,13 @@ const Account = () => {
                 .select('*')
                 .eq("user_id", user.id)
             setProfileData(profile[0])
+            if (profile[0].profile_picture) {
+                // grab it from s3 and set it as the selected image
+                const { data: imgData, error } = await supabase.storage
+                    .from('profilepictures')
+                    .download(profile[0].profile_picture)
+                setSelectedImage(imgData)
+            }
         }
         getProfile()
     }, [])
@@ -40,7 +48,7 @@ const Account = () => {
     }
 
     async function handleSubmit(name) {
-        if (!input[name]) return
+        if (!input[name]) return // stops user submitting empty fields
 
         // update profiles table
         const { data, error: profilesError } = await supabase
@@ -48,20 +56,28 @@ const Account = () => {
             .update({ [name]: input[name] })
             .match({ user_id: user.id })
 
+        function updateState() {
+            setInput(baseInput)
+            let newProfileData = { ...profileData, [name]: input[name] }
+            setProfileData(newProfileData)
+            setMessage(`You updated ${name} to ${input[name]}`)
+            setMessageType("success")
+        }
+
         // update auth.user table if first or last name
         if (name === "nickname") {
-            setInput(baseInput)
+            updateState()
             return
         }
         const { user: updatedUser, error: authError } = await updateUserInfo({
             data: { [name]: input[name] },
         })
-
-        setInput(baseInput)
+        updateState()
     }
 
     async function updatePassword() {
-        if (passwords.password !== passwords.password2) {
+        if (passwords.password !== passwords.password2 || passwords.password === "") {
+            // TODO add error message here
             return
         }
         const { user: newUser, error } = await updateUserInfo({ password: passwords.password })
@@ -74,33 +90,55 @@ const Account = () => {
         setPasswords(newPasswordInput)
     }
 
-    function uploadPhoto() {
+    async function uploadPhoto() {
         let typeMap = {
             "image/jpeg": ".jpg",
             "image/png": ".png"
         }
         setUploadingImage(true)
-        try {
-            let extension = typeMap[selectedImage.type]
-            new Compressor(selectedImage, {
-                quality: 0.8,
-                success: async (compressedImage) => {
+        let extension = typeMap[selectedImage.type]
+        let newFileName = `${user.id}${extension}`
+        new Compressor(selectedImage, {
+            quality: 0.8,
+            success: async (compressedImage) => {
+                async function uploadToStorage() {
+                    if (profileData.profile_picture) {
+                        const { data, error } = await supabase.storage
+                            .from('profilepictures')
+                            .remove([profileData.profile_picture])
+                        if (error) {
+                            setMessage("Unable to remove old photo, contact support.")
+                            setMessageType("error")
+                        }
+                    }
                     const { data, error } = await supabase.storage
                         .from('profilepictures')
-                        .upload(`${user.id}${extension}`, compressedImage, {
+                        .upload(newFileName, compressedImage, {
                             cacheControl: '3600',
                             upsert: false,
                         })
+                    if (error) {
+                        setMessage("Unable to upload photo, contact support.")
+                        setMessageType("error")
+                    }
                 }
-            })
-            setUploadingImage(false)
-            setShowPopup(true)
-            console.log("successfully uploaded image");
-        } catch (error) {
-            console.log(error);
-            setUploadingImage(false)
-            return // tell user must be of type jpg or png
-        }
+                async function updateProfile() {
+                    const { data, error: profilesError } = await supabase
+                        .from('profiles')
+                        .update({ "profile_picture": newFileName })
+                        .match({ user_id: user.id })
+                    if (profilesError) {
+                        setMessage("Unable to update profile, contact support.")
+                        setMessageType("error")
+                    }
+                }
+                uploadToStorage()
+                updateProfile()
+            }
+        })
+        setProfileData({ ...profileData, "profile_picture": newFileName })
+        setUploadingImage(false)
+        setMessage("Your profile picture has been uploaded")
     }
 
     return (
@@ -112,7 +150,7 @@ const Account = () => {
             <div className="form-control ml-3 mt-2">
                 <label className="input-group">
                     <span>First Name</span>
-                    <input type="text" name="first_name" placeholder={profileData.first_name} value={input.first_name} onChange={handleChange} className="input input-bordered" />
+                    <input type="text" name="first_name" placeholder={profileData?.first_name} value={input.first_name} onChange={handleChange} className="input input-bordered" />
                     <span onClick={() => handleSubmit("first_name")}>Update</span>
                 </label>
             </div>
@@ -120,7 +158,7 @@ const Account = () => {
             <div className="form-control ml-3 mt-2">
                 <label className="input-group">
                     <span>Last Name</span>
-                    <input type="text" name="last_name" placeholder={profileData.last_name} value={input.last_name} onChange={handleChange} className="input input-bordered" />
+                    <input type="text" name="last_name" placeholder={profileData?.last_name} value={input.last_name} onChange={handleChange} className="input input-bordered" />
                     <span onClick={() => handleSubmit("last_name")}>Update</span>
                 </label>
             </div>
@@ -128,7 +166,7 @@ const Account = () => {
             <div className="form-control ml-3 mt-2">
                 <label className="input-group">
                     <span>Nickname</span>
-                    <input type="text" name="nickname" placeholder={profileData.nickname} value={input.nickname} onChange={handleChange} className="input input-bordered" />
+                    <input type="text" name="nickname" placeholder={profileData?.nickname} value={input.nickname} onChange={handleChange} className="input input-bordered" />
                     <span onClick={() => handleSubmit("nickname")}>Update</span>
                 </label>
             </div>
@@ -172,7 +210,7 @@ const Account = () => {
             </div>
             <button onClick={updatePassword} className="btn ml-3 mt-4">Submit</button>
             <hr className="mt-4"></hr>
-            {showPopup && <PopUpMessage message={"Successfully uploaded profile picture"} setter={setShowPopup} messageType="success" />}
+            {message && <PopUpMessage message={message} setter={setMessage} messageType={messageType} />}
         </>
     )
 }
