@@ -77,10 +77,18 @@ const Account = () => {
 
     async function updatePassword() {
         if (passwords.password !== passwords.password2 || passwords.password === "") {
-            // TODO add error message here
+            setMessage("Passwords must match, please try again.")
+            setMessageType("error")
             return
         }
         const { user: newUser, error } = await updateUserInfo({ password: passwords.password })
+        if (error) {
+            setMessage("Unable to update password, contact support.")
+            setMessageType("error")
+            return
+        }
+        setMessage("Your password has been updated.")
+        setMessageType("success")
         setPasswords(basePasswords)
     }
 
