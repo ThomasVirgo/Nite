@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/auth';
-import { Login, SignUp, PrivateRoute, Dashboard, Account } from './pages'
+import { Login, SignUp, PrivateRoute, Dashboard, Account, Friends } from './pages'
 
 function App() {
   return (
@@ -17,6 +17,7 @@ function App() {
             <Route element={<PrivateRoute />}>
               <Route exact path="/" element={<Dashboard />}></Route>
               <Route exact path="/account" element={<Account />}></Route>
+              <Route exact path="/friends" element={<Friends />}></Route>
             </Route>
 
 
