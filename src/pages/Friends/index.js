@@ -6,6 +6,7 @@ import { useAuth } from "../../contexts/auth";
 
 const Friends = () => {
     const [users, setUsers] = useState([])
+    const [friends, setFriends] = useState([])
     const [showUserList, setShowUserList] = useState(true)
     const [showFriendsList, setShowFriendsList] = useState(true)
     const [message, setMessage] = useState("")
@@ -19,9 +20,23 @@ const Friends = () => {
             let { data: profiles, error } = await supabase
                 .from('profiles')
                 .select('*')
-            setUsers(profiles)
+            if (profiles) { setUsers(profiles) }
+            return profiles
         }
-        fetchUsers()
+        async function fetchFriends() {
+            let { data: friends, error } = await supabase
+                .from('friends')
+                .select('*')
+                .or(`user_id_1.eq.${user.id},user_id_2.eq.${user.id}`)
+            if (friends) { setFriends(friends) }
+            return friends
+        }
+        async function load() {
+            const [profiles, frs] = await Promise.all([fetchUsers(), fetchFriends()]);
+            console.log(profiles);
+            console.log(frs);
+        }
+        load()
     }, [])
 
     function toggleUserList() {

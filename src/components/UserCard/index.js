@@ -49,8 +49,6 @@ const UserCard = ({ profileData, user }) => {
             return data
         }
         const [friend_request, notification] = await Promise.all([createRequest(), createNotification()]);
-        console.log(friend_request);
-        console.log(notification);
         setMessage(`Friend request has been sent to ${profileData.first_name}, do not try again.`)
         setMessageType("success")
         setFriendRequestSent(true)
